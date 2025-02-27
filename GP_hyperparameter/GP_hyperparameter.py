@@ -2,36 +2,79 @@ import numpy as np
 import plotly.graph_objects as go
 from dash import Dash, dcc, html
 from dash.dependencies import Input, Output
-from src.gp_hyperparameter import log_marginal_likelihood
+from src.gp_hyperparameter.funcs import log_marginal_likelihood
 
 app = Dash(__name__)
 
+# Initial values for points
+initial_points = {'x': [1, 4], 'y': [1, 4]}
+
 app.layout = html.Div([
+    # Header
     html.H1(children='MLL Visualization', 
             style={'textAlign': 'center'}),
-    html.Div(children='Visualization of the log marginal likelihood of a Gaussian Process with respect to the hyperparameters.',
+    # Description
+    html.Div(children='Visualization of the log marginal likelihood of a Gaussian Process with respect to the hyperparameters. The plot shows the log marginal likelihood as a function of the hyperparameters σₙ and θₗ. The red line shows the maximum log marginal likelihood for fixed θₗ and the blue line shows the maximum log marginal likelihood for fixed σₙ. The plot updates as the sliders are adjusted. You can adjust the position of the observation and the observation value',
              style={'textAlign': 'center'}),
     dcc.Graph(id='mll-plot'),
-    html.Div([
-        html.Label('x1'),
-        dcc.Slider(id='x1-slider', min=0, max=5, value=1),
-        html.Label('x2'),
-        dcc.Slider(id='x2-slider', min=0, max=5, value=1.8),
-        html.Label('y1'),
-        dcc.Slider(id='y1-slider', min=0, max=5, value=2),
-        html.Label('y2'),
-        dcc.Slider(id='y2-slider', min=0, max=5, value=2.5)
-    ])
+    dcc.Graph(id='scatter-plot'),
 ])
+
+
+@app.callback(
+    Output('scatter-plot', 'figure'),
+    Input('scatter-plot', 'relayoutData')
+)
+def update_scatter(relayout_data):
+    """ Updates the scatter plot and captures new (x1, y1) and (x2, y2) positions. """
+    
+    global initial_points  # To keep track of dragged points
+
+    # Check if user moved points
+    if relayout_data and "shapes" in relayout_data:
+        for i, shape in enumerate(relayout_data["shapes"]):
+            initial_points['x'][i] = shape["x0"]
+            initial_points['y'][i] = shape["y0"]
+
+    # Create scatter plot with draggable points
+    fig = go.Figure()
+
+    fig.add_trace(go.Scatter(
+        x=initial_points['x'],
+        y=initial_points['y'],
+        mode='markers',
+        marker=dict(size=10, color=['red', 'blue']),
+        name="Draggable Points"
+    ))
+
+    # Add draggable shapes
+    fig.update_layout(
+        dragmode="drawopenpath",
+        shapes=[
+            dict(
+                type="circle",
+                xref="x", yref="y",
+                x0=initial_points['x'][i] - 0.1, x1=initial_points['x'][i] + 0.1,
+                y0=initial_points['y'][i] - 0.1, y1=initial_points['y'][i] + 0.1,
+                fillcolor="rgba(0, 0, 255, 0.3)",
+                line=dict(color="blue" if i else "red")
+            ) for i in range(2)
+        ]
+    )
+
+    return fig
 
 @app.callback(
     Output('mll-plot', 'figure'),
-    [Input('x1-slider', 'value'),
-     Input('x2-slider', 'value'),
-     Input('y1-slider', 'value'),
-     Input('y2-slider', 'value')]
+    Input('scatter-plot', 'relayoutData')
 )
-def update_plot(x1, x2, y1, y2):
+def update_mll(relayout_data):
+    """ Updates the 3D MLL visualization based on new (x1, y1) and (x2, y2). """
+
+    global initial_points
+
+    x1, x2 = initial_points['x']
+    y1, y2 = initial_points['y']    
     mll_func = log_marginal_likelihood()
     
     # Define resolution of the meshgrid

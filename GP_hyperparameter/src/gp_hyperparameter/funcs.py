@@ -1,4 +1,6 @@
 import sympy
+import numpy as np
+import GPy
 
 def log_marginal_likelihood():
     # Define the length scale symbol
@@ -32,3 +34,28 @@ def log_marginal_likelihood():
     mll_func = sympy.lambdify((x1, x2, y1, y2, mu1, mu2, sigma, sigma_n, l), mll)
     
     return mll_func
+
+def calc_GP(noise_inference: str, x: list, y: list):
+    X = np.array(x).reshape(-1, 1)
+    Y = np.array(y).reshape(-1, 1)
+    
+    # Create a kernel
+    kernel = GPy.kern.RBF(input_dim=1, variance=1., lengthscale=1.)
+
+    # Create a Gaussian Process model
+    model = GPy.models.GPRegression(X, Y, kernel)
+
+    # Set the noise variance to a very small value and fix it
+    if noise_inference == 'fixed zero':
+        model.Gaussian_noise.variance = 1e-6
+        model.Gaussian_noise.variance.fix()
+    
+    # Optimize the model
+    model.optimize()
+    model.optimize_restarts(num_restarts=10, verbose=False)
+    
+    # Make predictions
+    X_plot = np.linspace(-5, 5, 200).reshape(-1, 1)
+    Y_mean, Y_var = model.predict(X_plot)
+    
+    return X_plot.flatten().tolist(), Y_mean.flatten().tolist(), Y_var.flatten().tolist()
