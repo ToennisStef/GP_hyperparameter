@@ -5,26 +5,12 @@ from dash import Dash, dcc, html
 from dash.dependencies import Input, Output
 from src.gp_hyperparameter.updates import update_global_points, update_GP_plot
 from src.gp_hyperparameter.funcs import calc_GP
-import numpy as np
+from src.gp_hyperparameter.classes import DataPoints
 
 app = Dash(__name__)
 
 # Initial values for points
-N_points = 2
-
-class DataPoints:
-    def __init__(self, 
-                 x=None, 
-                 y=None
-                 ):
-        if x is None:
-            self.x = np.random.uniform(-2.5, 2.5)
-        else:
-            self.x = x
-        if y is None:
-            self.y = np.random.uniform(-2.5, 2.5)
-        else:
-            self.y = y
+N_points = 5
 
 DataPoints = [DataPoints() for _ in range(N_points)]
         

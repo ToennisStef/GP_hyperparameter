@@ -46,7 +46,7 @@ def update_GP_plot(fig, x, y, X_plot, Y_mean, Y_var):
         x=x,
         y=y,
         mode='markers',
-        marker=dict(size=10, color=['red', 'blue']), 
+        marker=dict(size=10, color='black'), 
         name="Draggable Points"
     ))
 
@@ -81,7 +81,7 @@ def update_GP_plot(fig, x, y, X_plot, Y_mean, Y_var):
                 x0=x[i]-0.1, x1=x[i]+0.1,
                 y0=y[i]-0.1, y1=y[i]+0.1,
                 # fillcolor="rgba(0, 0, 0, 0)", # Commented out for now
-                line=dict(color="blue" if i else "red")
-            ) for i in range(2)
+                line=dict(color="blue")
+            ) for i in range(len(x))
         ]
     )
