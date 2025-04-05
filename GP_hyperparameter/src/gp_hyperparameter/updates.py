@@ -38,7 +38,7 @@ def update_global_points(relayoutData, DataPoints):
         for key in new_y.keys():
             DataPoints[key].y = new_y[key]    # Modify the global variable
             
-def update_GP_plot(fig, x, y, X_plot, Y_mean, Y_var):
+def update_GP_fig(fig, x, y, X_plot, Y_plot, Y_mean, Y_var):
     # Create scatter plot with draggable points
     
     # Add the nice looking scatter plots
@@ -48,6 +48,15 @@ def update_GP_plot(fig, x, y, X_plot, Y_mean, Y_var):
         mode='markers',
         marker=dict(size=10, color='black'), 
         name="Draggable Points"
+    ))
+
+    # Add mean prediction line
+    fig.add_trace(go.Scatter(
+        x=X_plot,
+        y=Y_plot,
+        mode='lines',
+        name='Forrester function',
+        line=dict(color='red', dash='dash')
     ))
 
     # Add mean prediction line
@@ -78,8 +87,8 @@ def update_GP_plot(fig, x, y, X_plot, Y_mean, Y_var):
             dict(
                 type="circle",
                 xref="x", yref="y",
-                x0=x[i]-0.1, x1=x[i]+0.1,
-                y0=y[i]-0.1, y1=y[i]+0.1,
+                x0=x[i]-0.01*(1-0), x1=x[i]+0.01*(1-0),
+                y0=y[i]-0.01*(20+10), y1=y[i]+0.01*(20+10),
                 # fillcolor="rgba(0, 0, 0, 0)", # Commented out for now
                 line=dict(color="blue")
             ) for i in range(len(x))

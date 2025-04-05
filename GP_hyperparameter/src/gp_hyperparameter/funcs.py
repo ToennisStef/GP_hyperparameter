@@ -2,6 +2,9 @@ import sympy
 import numpy as np
 import GPy
 
+def forrester(x):
+    return (6*x-2)**2 * np.sin(12*x-4)
+
 def log_marginal_likelihood():
     # Define the length scale symbol
     l = sympy.symbols(r"\theta_l")
@@ -55,7 +58,7 @@ def calc_GP(noise_inference: str, x: list, y: list):
     model.optimize_restarts(num_restarts=10, verbose=False)
     
     # Make predictions
-    X_plot = np.linspace(-5, 5, 200).reshape(-1, 1)
+    X_plot = np.linspace(0, 1, 200).reshape(-1, 1)
     Y_mean, Y_var = model.predict(X_plot)
     
-    return X_plot.flatten().tolist(), Y_mean.flatten().tolist(), Y_var.flatten().tolist()
+    return model, X_plot.flatten().tolist(), Y_mean.flatten().tolist(), Y_var.flatten().tolist()
